@@ -4,6 +4,7 @@
 
 ## WRRC
 ![photo](assets/map.png)
+![photo](assets/map2.jpg)
 ---
 ## Overview
 ---
