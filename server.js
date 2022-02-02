@@ -34,15 +34,21 @@ const client = new pg.Client(myDB_URL);
 // setting-up the get routes (requests)
 app.get('/', handler);
 app.get('/favorite', favoriteHandler);
+
 app.get('/trending', trendingHandler);
 app.get('/search', searchHandler);
 app.get('/upcoming', upcomingHandler);
 app.get('/credits', creditsHandler);
-app.get('/getMovies', getMoviesFromDBHandler);
-app.post('/addMovie' ,jsonParser, addMovieHandler)
-app.use(errorHandler)
-app.use(express.json());
 
+app.get('/getMovies', getMoviesFromDBHandler);
+app.post('/addMovie', jsonParser, addMovieHandler);
+
+app.put('/UPDATE/:id', jsonParser, updateMovie);
+app.delete('/DELETE/:id', deleteMovie);
+app.get('/getMovie/:id', getMovie);
+
+// app.use(errorHandler);
+app.use(express.json());
 app.get("*", notFoundHandler);
 
 // a constructor for the movies data
@@ -144,7 +150,38 @@ function getMoviesFromDBHandler(req, res) {
         errorHandler(err, req, res);
     });
 }
-
+// updating a specific info
+function updateMovie(req, res) {
+    let id = req.params.id;
+    let movie = req.body;
+    let sql = `UPDATE movies SET id=$1, title=$2, release_date=$3, poster_path=$4, overview=$5 WHERE id=$6 RETURNING *;`;
+    let values = [movie.id, movie.title, movie.release_date, movie.poster_path, movie.overview, id];
+    client.query(sql, values).then(data => {
+        res.status(200).json(data.rows);
+    }).catch(err => {
+        errorHandler(err, req, res);
+    });
+}
+// delete a movie 
+function deleteMovie(req, res) {
+    let id = req.params.id;
+    let sql = `DELETE FROM movies WHERE id=${id};`;
+    client.query(sql).then(() => {
+        res.status(200).send(`Movie ${id} has been deleted !`);
+    }).catch(err => {
+        errorHandler(err, req, res);
+    });
+}
+// gat one movie
+function getMovie(req, res) {
+    let id = req.params.id;
+    let sql = `SELECT * FROM movies WHERE id=${id};`;
+    client.query(sql).then(data => {
+        res.status(200).json(data.rows);
+    }).catch(err => {
+        errorHandler(err, req, res);
+    });
+}
 
 
 
@@ -166,5 +203,5 @@ client.connect().then(() => {     // connect the DB
     app.listen(myPort, () => {    // run the server
         console.log(`listening to port: ${myPort}`);
     })    
-})
+});
 
