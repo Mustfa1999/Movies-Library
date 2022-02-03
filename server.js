@@ -29,7 +29,12 @@ let jsonParser = bodyParser.json();
 //start the server 
 const app = express();
 app.use(cors());
-const client = new pg.Client(myDB_URL);
+// const client = new pg.Client(myDB_URL);
+const client = new pg.Client({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+});
+
 
 // setting-up the get routes (requests)
 app.get('/', handler);
@@ -133,8 +138,8 @@ function creditsHandler(req, res) {
 // adding a movie to the database
 function addMovieHandler(req, res) {
     let movie = req.body;
-    let sql = `INSERT INTO movies(id, title, release_date, poster_path, overview) VALUES($1, $2, $3, $4, $5) RETURNING *;`;
-    let values = [movie.id, movie.title, movie.release_date, movie.poster_path, movie.overview];
+    let sql = `INSERT INTO movies(title, release_date, poster_path, overview) VALUES($1, $2, $3, $4) RETURNING *;`;
+    let values = [movie.title, movie.release_date, movie.poster_path, movie.overview];
     client.query(sql, values).then(data => {
         res.status(200).json(data.rows);
     }).catch(err => {
@@ -154,8 +159,8 @@ function getMoviesFromDBHandler(req, res) {
 function updateMovie(req, res) {
     let id = req.params.id;
     let movie = req.body;
-    let sql = `UPDATE movies SET id=$1, title=$2, release_date=$3, poster_path=$4, overview=$5 WHERE id=$6 RETURNING *;`;
-    let values = [movie.id, movie.title, movie.release_date, movie.poster_path, movie.overview, id];
+    let sql = `UPDATE movies SET title=$1, release_date=$2, poster_path=$3, overview=$4 WHERE id=${id} RETURNING *;`;
+    let values = [movie.title, movie.release_date, movie.poster_path, movie.overview];
     client.query(sql, values).then(data => {
         res.status(200).json(data.rows);
     }).catch(err => {
