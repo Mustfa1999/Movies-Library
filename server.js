@@ -29,7 +29,12 @@ let jsonParser = bodyParser.json();
 //start the server 
 const app = express();
 app.use(cors());
-const client = new pg.Client(myDB_URL);
+// const client = new pg.Client(myDB_URL);
+const client = new pg.Client({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+});
+
 
 // setting-up the get routes (requests)
 app.get('/', handler);
